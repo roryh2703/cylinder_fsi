@@ -1,0 +1,31 @@
+script to push/pull to github
+
+username: roryh2703
+password: usual- z******\
+
+_______________first commit_________________________
+
+CHECK .gitignore has been created
+
+git init
+git add README.md
+
+git add -A
+git commit -m "first commit"
+git remote add origin https://github.com/roryh2703/cylinder_dfsem.git
+git push -u origin master
+
+________________pushing up______________________
+
+git add -A
+git commit -m "little comment"
+git push -u origin master
+
+
+
+
+
+
+
+
+

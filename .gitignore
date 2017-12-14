@@ -1,0 +1,3 @@
+/fluid/constant/polyMesh/[b]*       #ie don't push blockMesh files
+/solid/constant/polyMesh/[b]*
+
