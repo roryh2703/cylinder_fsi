@@ -1,5 +1,5 @@
 #________________________RORY ADD_____________________________________
-read -p "Press [Enter] key to start simulation from scratch..."
+read -p "Press [Enter] key to clean directories..."
 
 rm -rf sed*                #sed* files start to build in the current directory
 
@@ -10,15 +10,12 @@ module add foam-extend/4.0
 
 rm -rf sed*       #random 
 
-NB_CORES=3
-
 m4 ./fluid/constant/polyMesh/blockfluidMesh.m4 > fluid/constant/polyMesh/blockMeshDict
 m4 ./solid/constant/polyMesh/blocksolidMesh.m4 > solid/constant/polyMesh/blockMeshDict
 
 sed -i s/tcsh/sh/g *Links
 ./removeSerialLinks fluid solid           #takes fluid and solid as input $1 and $2
 ./makeSerialLinks fluid solid
-
 
 cd fluid
 
@@ -42,43 +39,6 @@ cd fluid
 touch fluid.foam
 cd ..
 
-#__________________________________________
+rm -rf sed*     #remove pesky sed files
 
-# Get application name
-application=`getApplication`   #i.e. fsifoam
-
-
-cd fluid
-touch fluid.foam
-runApplication blockMesh
-runApplication renumberMesh -overwrite
-runApplication checkMesh
-runApplication setSet -batch setBatch
-runApplication setsToZones -noFlipMap
-runApplication decomposePar -cellDist
-cd -
-
-cd solid
-touch fluid.foam
-runApplication blockMesh
-runApplication renumberMesh -overwrite
-runApplication checkMesh
-runApplication setSet -batch setBatch
-runApplication setsToZones -noFlipMap
-runApplication decomposePar -cellDist
-cd -
-
-
-
-#____________________________________________________________
-# include...?
-#cp -r solid/0 fluid/0/solid
-#cp -r solid/constant fluid/constant/solid
-#cp -r solid/system fluid/system/solid
-
-
-./makeLinks fluid solid
-
-
-cd fluid
-mpirun -np $NB_CORES --allow-run-as-root fsiFoam -parallel &> log.fsiFoam
+find . -type f -name '*~' -exec rm -f '{}' \;  #delete emacs save files (tildes)

@@ -1,8 +1,14 @@
 #________________________RORY ADD_____________________________________
+read -p "Press [Enter] key to start simulation from scratch..."
+
+rm -rf sed*                #sed* files start to build in the current directory
+
 module add foam-extend/4.0 
 . $FOAM_SRC_FILE
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+rm -rf sed*       #random 
 
 NB_CORES=3
 
@@ -34,67 +40,45 @@ cd ..
 ./removeSerialLinks fluid
 cd fluid
 touch fluid.foam
+cd ..
 
 #__________________________________________
 
 # Get application name
 application=`getApplication`   #i.e. fsifoam
 
-runApplication -l log.blockMesh.solid blockMesh -case ../solid
-runApplication -l log.setSet.solid setSet -case ../solid -batch ../solid/setBatch
-runApplication -l log.setToZones.solid setsToZones -case ../solid -noFlipMap
 
-
-cd ../solid
-
+cd fluid
+touch fluid.foam
 runApplication blockMesh
+runApplication renumberMesh -overwrite
+runApplication checkMesh
 runApplication setSet -batch setBatch
 runApplication setsToZones -noFlipMap
 runApplication decomposePar -cellDist
+cd -
 
-for d in processor*/; do
-echo $d
-scp -r setBatch $d
-cd $d
-runApplication setSet -batch setBatch
-runApplication setsToZones -noFlipMap
-cd ..
-done
-
-
-cd ../fluid
+cd solid
+touch fluid.foam
 runApplication blockMesh
+runApplication renumberMesh -overwrite
+runApplication checkMesh
 runApplication setSet -batch setBatch
 runApplication setsToZones -noFlipMap
-runApplication decomposePar -cellDist 
-
-
-for d in processor*/; do
-echo $d
-scp -r setBatch $d
-cd $d
-runApplication setSet -batch setBatch
-runApplication setsToZones -noFlipMap
-cd ..
-done
+runApplication decomposePar -cellDist
+cd -
 
 
 
-
-
-
-cd ..
+#____________________________________________________________
+# include...?
+#cp -r solid/0 fluid/0/solid
+#cp -r solid/constant fluid/constant/solid
+#cp -r solid/system fluid/system/solid
 
 
 ./makeLinks fluid solid
 
 
-for d in processor*/; do
-    cp -rf solid/$d/0 fluid/$d/0/solid
-    cp -rf solid/$d/constant fluid/$d/constant/solid
-done
-
-
 cd fluid
-runParallel $application 3
 mpirun -np $NB_CORES --allow-run-as-root fsiFoam -parallel &> log.fsiFoam
